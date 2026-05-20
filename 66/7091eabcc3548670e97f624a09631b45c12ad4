@@ -1,0 +1,21 @@
+src/github_client.py
+  s_2516bd76419d02::t_23f41f7cf8b70c 9,31-38,52,57,70-71,82,84-85,102-103,106-111,118-121,123-127,134-174,176-178,180-181
+requirements.txt
+  s_2516bd76419d02::t_b088d44ab15ecb 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "667091eabcc3548670e97f624a09631b45c12ad4",
+  "prompts": {},
+  "sessions": {
+    "s_2516bd76419d02": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed0db8fb-1248-4aba-861a-89d21c204dc9",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
