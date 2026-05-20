@@ -154,8 +154,10 @@ GitHub API
 ```
 openclaw-rca-engine/
 ├── CASE_STUDY.md          # Original challenge brief
+├── CLAUDE.md              # Project guidance for Claude Code
 ├── ROADMAP.md             # This file
 ├── README.md              # Setup and usage guide
+├── .env.example           # Required environment variable template
 ├── src/
 │   ├── github_client.py   # GitHub API data collection
 │   ├── preprocessor.py    # Data cleaning and truncation
@@ -164,7 +166,6 @@ openclaw-rca-engine/
 │   └── main.py            # CLI entry point
 ├── prompts/
 │   └── rca_system.md      # System prompt for the classifier
-├── output/
-│   └── report.md          # Generated trend report (gitignored sample)
+├── output/                # Generated reports (gitignored)
 └── requirements.txt
 ```
