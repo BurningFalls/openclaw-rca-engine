@@ -1,0 +1,29 @@
+README.md
+  s_4fa53a3c508b34::t_4f9c94ac8551ae 11
+  s_4fa53a3c508b34::t_653655e09bebe9 184-185,187-188,191
+  s_4fa53a3c508b34::t_af152ec2e82de8 73-97
+  s_4fa53a3c508b34::t_3053cc91a7e2e1 38,42,45-46
+.env.example
+  s_4fa53a3c508b34::t_07aacc0478a237 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "5927d7a4d80c7cc9e119095f4a5a25151739a766",
+  "prompts": {},
+  "humans": {
+    "h_810e32449568f3": {
+      "author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_4fa53a3c508b34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4442842-5409-4a7c-a1dc-f492feccde32",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
