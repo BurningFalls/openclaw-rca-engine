@@ -1,0 +1,19 @@
+src/main.py
+  s_ae84e0cea9191a::t_3952348e97a495 1-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "a7c78c2549887bc828cea9286c699e1cdf786814",
+  "prompts": {},
+  "sessions": {
+    "s_ae84e0cea9191a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5867a412-d4c4-44a5-9a92-d5b856bf4216",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
