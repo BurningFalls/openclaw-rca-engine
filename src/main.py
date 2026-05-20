@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from github_client import collect_closed_prs
+from preprocessor import preprocess_prs
 from classifier import classify_prs
 from aggregator import aggregate, write_report
 
@@ -38,11 +39,12 @@ def main() -> None:
     try:
         print(f"[main] Starting RCA pipeline (limit={args.limit})")
 
-        prs = collect_closed_prs(limit=args.limit)
-        if not prs:
+        raw_prs = collect_closed_prs(limit=args.limit)
+        if not raw_prs:
             print("[main] No PRs collected. Exiting.")
             sys.exit(1)
 
+        prs = preprocess_prs(raw_prs)
         results = classify_prs(prs)
         if not results:
             print("[main] No classification results. Exiting.")

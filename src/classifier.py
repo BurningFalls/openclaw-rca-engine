@@ -16,7 +16,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from github_client import PRData, ReviewData, CheckRunResult
+from preprocessor import PreprocessedPR, preprocess_prs
 
 load_dotenv()
 
@@ -51,42 +51,8 @@ class ClassificationResult:
     cache_creation_tokens: int
 
 
-def _format_reviews(reviews: list[ReviewData]) -> str:
-    if not reviews:
-        return "None"
-    lines = []
-    for r in reviews:
-        body_preview = r.body[:200].strip() if r.body else ""
-        lines.append(f"- [{r.state}] {r.author}: {body_preview}")
-    return "\n".join(lines)
-
-
-def _format_check_runs(check_runs: list[CheckRunResult]) -> str:
-    if not check_runs:
-        return "None"
-    lines = []
-    for c in check_runs:
-        summary = c.output_summary[:200].strip() if c.output_summary else ""
-        lines.append(
-            f"- {c.name}: {c.conclusion or c.status}"
-            + (f" — {c.output_title}" if c.output_title else "")
-            + (f"\n  {summary}" if summary else "")
-        )
-    return "\n".join(lines)
-
-
-def _format_comments(comments: list[str], max_chars: int = 2000) -> str:
-    if not comments:
-        return "None"
-    joined = "\n---\n".join(comments)
-    if len(joined) > max_chars:
-        return joined[:max_chars] + "\n... [truncated]"
-    return joined
-
-
-def _build_user_message(pr: PRData) -> str:
-    """Serialize a PRData into a structured plain-text block for the LLM."""
-    failed_ci = [c for c in pr.check_runs if c.conclusion in ("failure", "error")]
+def _build_user_message(pr: PreprocessedPR) -> str:
+    """Serialize a PreprocessedPR into a structured plain-text block for the LLM."""
     return f"""## PR #{pr.number}: {pr.title}
 
 **Author:** {pr.author}
@@ -95,22 +61,22 @@ def _build_user_message(pr: PRData) -> str:
 **Labels:** {", ".join(pr.labels) if pr.labels else "none"}
 
 ### Description
-{pr.body[:500].strip() if pr.body else "No description provided."}
+{pr.body_truncated}
 
-### CI / Check Runs ({len(pr.check_runs)} total, {len(failed_ci)} failed)
-{_format_check_runs(pr.check_runs)}
+### CI / Check Runs ({pr.total_ci_count} total, {pr.failed_ci_count} failed)
+{pr.check_runs_formatted}
 
-### Reviews ({len(pr.reviews)} total)
-{_format_reviews(pr.reviews)}
+### Reviews ({pr.review_count} total)
+{pr.reviews_formatted}
 
-### Issue Comments ({len(pr.issue_comments)} total)
-{_format_comments(pr.issue_comments)}
+### Issue Comments ({pr.issue_comment_count} total)
+{pr.issue_comments_formatted}
 
-### Review Comments ({len(pr.review_comments)} total)
-{_format_comments(pr.review_comments)}
+### Review Comments ({pr.review_comment_count} total)
+{pr.review_comments_formatted}
 
 ### Diff (truncated)
-{pr.diff[:3000].strip() if pr.diff else "No diff available."}
+{pr.diff_truncated}
 """
 
 
@@ -140,7 +106,7 @@ def _parse_response(raw: str) -> dict:
 
 
 def classify_pr(
-    pr: PRData,
+    pr: PreprocessedPR,
     client: anthropic.Anthropic,
     system_prompt: str,
 ) -> ClassificationResult:
@@ -197,14 +163,14 @@ def classify_pr(
 
 
 def classify_prs(
-    prs: list[PRData],
+    prs: list[PreprocessedPR],
     delay_seconds: float = 0.3,
 ) -> list[ClassificationResult]:
     """
-    Classify a list of PRs sequentially with a short delay between requests.
+    Classify a list of preprocessed PRs sequentially with a short delay between requests.
 
     Args:
-        prs: List of PRData objects from the data collector.
+        prs: List of PreprocessedPR objects from the preprocessor.
         delay_seconds: Pause between API calls to avoid rate limiting.
 
     Returns:
@@ -272,7 +238,8 @@ def _print_token_summary(results: list[ClassificationResult]) -> None:
 if __name__ == "__main__":
     from github_client import collect_closed_prs
 
-    prs = collect_closed_prs(limit=3)
+    raw_prs = collect_closed_prs(limit=3)
+    prs = preprocess_prs(raw_prs)
     results = classify_prs(prs)
 
     print("\n=== Classification Results ===")
