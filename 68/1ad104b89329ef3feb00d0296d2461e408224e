@@ -1,0 +1,26 @@
+src/aggregator.py
+  s_ae84e0cea9191a::t_fcb6032cfc92f4 74
+  s_ae84e0cea9191a::t_3a13794be83b76 95
+  s_ae84e0cea9191a::t_9e284c73759284 61
+  s_ae84e0cea9191a::t_3eefe9fb31f514 10
+  s_ae84e0cea9191a::t_e321716f1a70e9 176
+src/main.py
+  s_ae84e0cea9191a::t_d8281c89369185 38-39,41-44,46-49,51-52,54-59
+  s_ae84e0cea9191a::t_13b75af78b78b1 60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "681ad104b89329ef3feb00d0296d2461e408224e",
+  "prompts": {},
+  "sessions": {
+    "s_ae84e0cea9191a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5867a412-d4c4-44a5-9a92-d5b856bf4216",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
