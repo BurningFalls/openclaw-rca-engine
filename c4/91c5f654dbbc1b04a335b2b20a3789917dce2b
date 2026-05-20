@@ -1,0 +1,19 @@
+src/aggregator.py
+  s_ae84e0cea9191a::t_4029a12cfb1256 1-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "c491c5f654dbbc1b04a335b2b20a3789917dce2b",
+  "prompts": {},
+  "sessions": {
+    "s_ae84e0cea9191a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5867a412-d4c4-44a5-9a92-d5b856bf4216",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
