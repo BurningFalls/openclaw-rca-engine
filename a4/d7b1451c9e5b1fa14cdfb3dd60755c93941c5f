@@ -1,0 +1,24 @@
+CLAUDE.md
+  s_95d142a45b9bf1::t_48e2675308e0af 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "a4d7b1451c9e5b1fa14cdfb3dd60755c93941c5f",
+  "prompts": {},
+  "humans": {
+    "h_810e32449568f3": {
+      "author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_95d142a45b9bf1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18230771-8ea9-486b-a6fa-ccaca00662f0",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
