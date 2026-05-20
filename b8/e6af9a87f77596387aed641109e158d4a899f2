@@ -1,0 +1,31 @@
+.env.example
+  s_2516bd76419d02::t_313adc40bdd919 1
+.gitignore
+  s_2516bd76419d02::t_9905bb40678ac4 1,3-6
+  s_2516bd76419d02::t_564c1d0cbc5766 2
+requirements.txt
+  s_2516bd76419d02::t_c73b72d691e375 1-3
+src/github_client.py
+  s_2516bd76419d02::t_ba365be3deb01a 1-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "b8e6af9a87f77596387aed641109e158d4a899f2",
+  "prompts": {},
+  "humans": {
+    "h_810e32449568f3": {
+      "author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_2516bd76419d02": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed0db8fb-1248-4aba-861a-89d21c204dc9",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
