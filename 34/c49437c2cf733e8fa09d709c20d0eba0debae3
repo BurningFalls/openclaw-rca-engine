@@ -1,0 +1,19 @@
+ROADMAP.md
+  s_3f543341a9373a::t_d73f4f6c2dd99e 1-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "34c49437c2cf733e8fa09d709c20d0eba0debae3",
+  "prompts": {},
+  "sessions": {
+    "s_3f543341a9373a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df4b0955-7f5a-424a-bcb9-e59b06cba7fb",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
