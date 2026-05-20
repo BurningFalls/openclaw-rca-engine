@@ -35,23 +35,29 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    try:
+        print(f"[main] Starting RCA pipeline (limit={args.limit})")
 
-    print(f"[main] Starting RCA pipeline (limit={args.limit})")
+        prs = collect_closed_prs(limit=args.limit)
+        if not prs:
+            print("[main] No PRs collected. Exiting.")
+            sys.exit(1)
 
-    prs = collect_closed_prs(limit=args.limit)
-    if not prs:
-        print("[main] No PRs collected. Exiting.")
+        results = classify_prs(prs)
+        if not results:
+            print("[main] No classification results. Exiting.")
+            sys.exit(1)
+
+        report = aggregate(results)
+        output_path = write_report(report, path=args.output)
+
+        print(f"\n[main] Done. Report: {output_path}")
+        print(f"       {report.total_prs} PRs | {len(report.categories)} categories")
+        for s in report.categories:
+            print(f"       {s.label}: {s.count} ({s.percentage:.1f}%)")
+    except (EnvironmentError, OSError) as e:
+        print(f"[main] Fatal error: {e}", file=sys.stderr)
         sys.exit(1)
-
-    results = classify_prs(prs)
-
-    report = aggregate(results)
-    output_path = write_report(report, path=args.output)
-
-    print(f"\n[main] Done. Report: {output_path}")
-    print(f"       {report.total_prs} PRs | {len(report.categories)} categories")
-    for s in report.categories:
-        print(f"       {s.label}: {s.count} ({s.percentage:.1f}%)")
 
 
 if __name__ == "__main__":

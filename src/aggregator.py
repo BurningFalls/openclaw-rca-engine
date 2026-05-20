@@ -7,7 +7,7 @@ confidence statistics, and outputs a ranked Markdown trend report.
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from classifier import ClassificationResult
@@ -58,7 +58,7 @@ def aggregate(results: list[ClassificationResult]) -> TrendReport:
     if total == 0:
         return TrendReport(
             total_prs=0,
-            generated_at=datetime.utcnow().isoformat(),
+            generated_at=datetime.now(timezone.utc).isoformat(),
             categories=[],
             low_confidence_prs=[],
         )
@@ -71,7 +71,7 @@ def aggregate(results: list[ClassificationResult]) -> TrendReport:
     for category, items in buckets.items():
         avg_conf = sum(r.confidence for r in items) / len(items)
         # Up to 3 highest-confidence examples per category
-        examples = sorted(items, key=lambda r: r.confidence, reverse=True)[:3]
+        examples = sorted(items, key=lambda x: x.confidence, reverse=True)[:3]
         summaries.append(
             CategorySummary(
                 category=category,
@@ -92,7 +92,7 @@ def aggregate(results: list[ClassificationResult]) -> TrendReport:
 
     return TrendReport(
         total_prs=total,
-        generated_at=datetime.utcnow().isoformat(),
+        generated_at=datetime.now(timezone.utc).isoformat(),
         categories=summaries,
         low_confidence_prs=low_confidence,
     )
@@ -173,6 +173,7 @@ def write_report(report: TrendReport, path: Path | None = None) -> Path:
         OUTPUT_DIR.mkdir(exist_ok=True)
         path = OUTPUT_DIR / "report.md"
 
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(_render_report(report), encoding="utf-8")
     print(f"[aggregator] Report written to {path}")
     return path
