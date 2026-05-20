@@ -1,0 +1,19 @@
+README.md
+  s_2516bd76419d02::t_aed2d04ad2b79b 1-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "12958e80f3b8331fdf662b7e20d65ff2cb7044ca",
+  "prompts": {},
+  "sessions": {
+    "s_2516bd76419d02": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed0db8fb-1248-4aba-861a-89d21c204dc9",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
