@@ -8,6 +8,7 @@ A tool that analyzes why Pull Requests in the [openclaw/openclaw](https://github
 
 - Python 3.11+
 - A GitHub Personal Access Token (read access to public repositories)
+- An Anthropic API Key (for the RCA classifier)
 
 ---
 
@@ -34,13 +35,15 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Open `.env` and set your GitHub token:
+Open `.env` and fill in both keys:
 
 ```
 GITHUB_TOKEN=your_github_personal_access_token_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-To generate a token: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Public repository read access is sufficient.
+- **GitHub token**: GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens. Public repository read access is sufficient.
+- **Anthropic API key**: [console.anthropic.com](https://console.anthropic.com) → API Keys.
 
 ---
 
@@ -66,6 +69,31 @@ Expected output:
 PR #84446 | itwillystyle | labels=['agents', 'size: S', ...] | reviews=0 | CI failures=2
   last comment: 'ClawSweeper applied the proposed close for this PR...'
 ```
+
+### Run the RCA classifier (PoC: 3 PRs)
+
+Requires `ANTHROPIC_API_KEY` to be set in `.env`.
+
+```bash
+python src/classifier.py
+```
+
+Expected output:
+
+```
+[github_client] Starting closed PR collection from openclaw/openclaw (limit=3)...
+[classifier] Starting classification of 3 PRs using claude-haiku-4-5...
+  [1/3] PR #84446: fix: omit api keys from generated models json
+    -> CI_FAILURE (confidence=0.85) | tokens: in=1423 out=187 cache_hit=0 cache_create=1301
+  [2/3] PR #84103: [codex] Fix Discord error finals clearing previews
+    -> STALE (confidence=0.72) | tokens: in=312 out=203 cache_hit=1301 cache_create=0
+  [3/3] PR #84328: fix(agent-runner): deliver assistant text as fallback
+    -> STALE (confidence=0.68) | tokens: in=289 out=198 cache_hit=1301 cache_create=0
+
+[classifier] Token summary — input: 2024 | output: 588 | cache_hit: 2602 | cache_created: 1301
+```
+
+The system prompt is cached after the first PR call, so `cache_hit` increases for every subsequent PR in the same run, reducing cost significantly.
 
 ---
 
@@ -153,8 +181,11 @@ openclaw-rca-engine/
 ├── ROADMAP.md             # Design decisions and scalability roadmap
 ├── requirements.txt
 ├── .env.example
+├── prompts/
+│   └── rca_system.md      # System prompt for the RCA classifier
 └── src/
-    └── github_client.py   # GitHub API data collection
+    ├── github_client.py   # GitHub API data collection
+    └── classifier.py      # LLM-based RCA classification (Claude Haiku)
 ```
 
-> **Implementation status:** The data collector (`github_client.py`) is complete and verified. The preprocessor, classifier, and aggregator are in progress — see [ROADMAP.md](ROADMAP.md) for the full design.
+> **Implementation status:** The data collector and RCA classifier are complete and verified. The aggregator and end-to-end CLI are in progress — see [ROADMAP.md](ROADMAP.md) for the full design.
