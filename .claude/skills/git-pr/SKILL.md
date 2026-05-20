@@ -1,117 +1,110 @@
 ---
 name: git-pr
-description: 현재 브랜치를 기반으로 develop 브랜치 대상 PR을 생성합니다. "PR 만들어줘", "pull request 생성해줘", "git-pr" 등의 요청에 사용하세요. push가 완료된 상태를 가정하며, 커밋 목록을 분석해 PR 제목과 본문을 자동 작성합니다.
+description: Creates a PR from the current branch targeting the main branch. Use for requests like "create a PR", "open a pull request", "git-pr". Assumes the branch is already pushed. Analyzes commits to auto-generate the PR title and body.
 context: fork
 ---
 
-## 1단계: 현재 브랜치 확인
+## Step 1: Check current branch
 
 ```bash
 git branch --show-current
 ```
 
-브랜치가 `main` 또는 `develop`이면 즉시 중단합니다:
+If the branch is `main` or `develop`, stop immediately:
 
-> "main/develop 브랜치에서는 PR을 생성할 수 없습니다. feature 브랜치에서 실행해주세요."
+> "Cannot create a PR from main/develop. Please run this from a feature branch."
 
-## 2단계: 커밋 목록 확인
+## Step 2: Check commit list
 
-develop 브랜치 대비 현재 브랜치의 커밋 목록을 확인합니다:
-
-```bash
-git log develop..HEAD --oneline
-```
-
-커밋이 없으면 중단합니다:
-
-> "develop 대비 새로운 커밋이 없습니다."
-
-## 3단계: PR 제목 결정
-
-브랜치명에서 PR 제목을 도출합니다.
-
-브랜치명 패턴: `feature/task-001-dev-environment-setup`
-
-변환 규칙:
-- `feature/` 접두어 제거
-- `task-NNN-` 부분이 있으면 → `Task NNN —` 형식으로 변환
-- 나머지 kebab-case를 읽기 좋은 한국어 또는 영문으로 변환
-- 적절한 type 접두어(`feat:`, `chore:` 등) 추가
-
-예시:
-- `feature/task-001-dev-environment-setup` → `chore: Task 001 — 개발 환경 설정`
-- `feature/improve-git-skills` → `chore: git 스킬 개선 및 git-pr 스킬 추가`
-
-## 4단계: PR 본문 작성
-
-커밋 목록과 변경 파일을 바탕으로 본문을 작성합니다.
-
-### 이슈 번호 조회
-
-브랜치명에서 Task 번호를 추출해 연결할 이슈 번호를 찾습니다:
+List commits on the current branch that are not on main:
 
 ```bash
-# 브랜치명 예: feature/task-001-dev-environment-setup → "001" 추출
-TASK_NUM=$(git branch --show-current | grep -oE 'task-[0-9]+' | grep -oE '[0-9]+')
-
-if [ -n "$TASK_NUM" ]; then
-  ISSUE_NUM=$(gh issue list --search "Task $(printf '%03d' $((10#$TASK_NUM)))" --json number,title --jq '.[0].number // empty')
-fi
+git log main..HEAD --oneline
 ```
 
-### 본문 형식
+If there are no commits, stop:
 
-`ISSUE_NUM`이 존재하면 `Closes #번호`를 포함하고, 없으면 해당 줄을 생략합니다:
+> "No new commits ahead of main."
+
+## Step 3: Determine PR title
+
+Derive the PR title from the branch name.
+
+Branch name pattern: `feat/short-description`
+
+Conversion rules:
+- Remove the `feat/`, `fix/`, `chore/` etc. prefix
+- Convert kebab-case to readable English
+- Add an appropriate type prefix (`feat:`, `chore:`, etc.)
+
+Examples:
+- `feat/rca-classifier` → `feat: implement LLM-based RCA classifier`
+- `chore/add-claude-settings` → `chore: add Claude Code configuration`
+
+## Step 4: Write PR body
+
+Write the body based on the commit list and changed files.
+
+### Issue number lookup
+
+Extract a task/issue number from the branch name if present:
+
+```bash
+ISSUE_NUM=$(gh issue list --search "<keyword from branch>" --json number,title --jq '.[0].number // empty')
+```
+
+### Body format
+
+Include `Closes #number` only if an issue number is found; otherwise omit that line:
 
 ```markdown
 ## Summary
 
-- <변경사항 bullet 1>
-- <변경사항 bullet 2>
-- <변경사항 bullet 3>
+- <change bullet 1>
+- <change bullet 2>
+- <change bullet 3>
 
 ## Commits
 
-- `<hash>` <커밋 메시지>
-- `<hash>` <커밋 메시지>
+- `<hash>` <commit message>
+- `<hash>` <commit message>
 
 ## Test plan
 
-- [ ] <검증 항목 1>
-- [ ] <검증 항목 2>
+- [ ] <verification item 1>
+- [ ] <verification item 2>
 
-Closes #<이슈번호>
+Closes #<issue number>
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-Summary는 커밋 메시지들을 종합해 변경의 목적 중심으로 작성합니다 (커밋 메시지를 그대로 나열하지 않음).
-Test plan은 변경 내용에 맞는 실질적인 검증 항목을 작성합니다.
+Write the Summary to reflect the purpose of the changes synthesized from the commits (do not just list commit messages verbatim).
+Write Test plan items that are practical and specific to the changes.
 
-## 5단계: 메타데이터 준비
+## Step 5: Prepare metadata
 
-### GitHub 사용자명 확인
+### Get GitHub username
 
 ```bash
 gh api user --jq '.login'
 ```
 
-### 라벨 준비
+### Prepare labels
 
-브랜치 태그(`feature`, `fix`, `refactor`, `chore`, `docs`, `test`)를 라벨명으로 사용합니다.
-브랜치명에서 태그를 추출합니다 (예: `feature/task-002-route-skeleton` → `feature`).
+Use the branch prefix (`feat`, `fix`, `refactor`, `chore`, `docs`, `test`) as the label name.
 
-해당 라벨이 레포에 존재하는지 확인합니다:
+Check if the label exists in the repo:
 
 ```bash
 gh label list --json name --jq '.[].name'
 ```
 
-라벨이 없으면 태그별 색상으로 생성합니다:
+If not, create it with the appropriate color:
 
-| 태그 | 색상 |
-|------|------|
-| `feature` | `0075ca` |
+| tag | color |
+|-----|-------|
+| `feat` | `0075ca` |
 | `fix` | `d73a4a` |
 | `refactor` | `e4e669` |
 | `chore` | `cfd3d7` |
@@ -119,32 +112,27 @@ gh label list --json name --jq '.[].name'
 | `test` | `bfd4f2` |
 
 ```bash
-gh label create "feature" --color "0075ca" --description "New feature or request"
-gh label create "fix" --color "d73a4a" --description "Bug fix"
-gh label create "refactor" --color "e4e669" --description "Code refactoring"
-gh label create "chore" --color "cfd3d7" --description "Maintenance or tooling"
-gh label create "docs" --color "0052cc" --description "Documentation changes"
-gh label create "test" --color "bfd4f2" --description "Test additions or fixes"
+gh label create "<tag>" --color "<color>" --description "<description>"
 ```
 
-## 6단계: PR 생성
+## Step 6: Create PR
 
 ```bash
 gh pr create \
-  --base develop \
-  --title "<PR 제목>" \
-  --assignee "<GitHub 사용자명>" \
-  --label "<브랜치 태그>" \
+  --base main \
+  --title "<PR title>" \
+  --assignee "<GitHub username>" \
+  --label "<branch tag>" \
   --body "$(cat <<'EOF'
-<PR 본문>
+<PR body>
 EOF
 )"
 ```
 
-## 7단계: PR을 프로젝트에 연결
+## Step 7: Link PR to project
 
-`.env.local`에서 `GITHUB_PROJECT_ID`를 읽어 프로젝트에 PR을 추가합니다.
-`GITHUB_PROJECT_ID`가 없으면 이 단계를 건너뜁니다.
+Read `GITHUB_PROJECT_ID` from `.env.local` and add the PR to the project.
+Skip this step if `GITHUB_PROJECT_ID` is not set.
 
 ```bash
 PROJECT_ID=$(grep GITHUB_PROJECT_ID .env.local 2>/dev/null | cut -d '=' -f2-)
@@ -162,6 +150,6 @@ if [ -n "$PROJECT_ID" ]; then
 fi
 ```
 
-## 8단계: PR URL 출력
+## Step 8: Print PR URL
 
-생성된 PR URL을 사용자에게 출력합니다.
+Print the created PR URL to the user.

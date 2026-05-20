@@ -1,46 +1,46 @@
 ---
 name: git-commit
-description: staged 여부와 관계없이 전체 변경사항을 논리 단위로 분류하여 자동으로 커밋합니다. "커밋해줘", "git commit", "변경사항 커밋해줘" 등의 요청에 사용하세요. 변경사항이 여러 분야에 걸쳐있으면 자동으로 분할 커밋합니다.
+description: Classifies all changes into logical units and commits automatically, regardless of staging state. Use for requests like "commit", "git commit", "commit the changes". Splits into multiple commits when changes span different concerns.
 context: fork
 ---
 
-## 1단계: 전체 변경사항 확인
+## Step 1: Check all changes
 
-아래 명령을 실행합니다:
+Run the following commands:
 
 ```bash
 git status
 git diff HEAD
 ```
 
-staged와 unstaged를 모두 포함한 전체 변경사항을 확인합니다.
+Review all changes including both staged and unstaged.
 
-변경사항이 없으면 즉시 중단하고 안내합니다:
+If there are no changes, stop immediately:
 
-> "커밋할 변경사항이 없습니다."
+> "No changes to commit."
 
-## 2단계: 변경사항 분석
+## Step 2: Analyze changes
 
-diff를 읽고 다음을 파악합니다:
+Read the diff and identify:
 
-- 어떤 파일들이 변경되었는가 (신규/수정/삭제)
-- 각 파일에서 어떤 내용이 추가/수정/삭제되었는가
-- 변경의 성격 (기능 추가, 버그 수정, 설정 변경 등)
+- Which files changed (added/modified/deleted)
+- What was added/modified/deleted in each file
+- The nature of the change (feature, bug fix, config change, etc.)
 
-## 3단계: 논리 단위 분류
+## Step 3: Classify into logical units
 
-아래 기준으로 커밋 단위를 결정합니다:
+Split into multiple commits when:
 
-- 서로 다른 type이 섞여 있음 (예: feat + fix, chore + feat)
-- 논리적으로 독립적인 목적을 가진 파일 그룹 (예: 패키지 설치 vs 설정 파일 vs 코드 정리)
-- 분리하면 각 커밋이 더 명확하고 revert가 쉬워지는 경우
+- Different types are mixed (e.g., feat + fix, chore + feat)
+- File groups serve logically independent purposes (e.g., package install vs config vs cleanup)
+- Splitting makes each commit clearer and easier to revert
 
-단일 커밋이면 4단계로 이동합니다.
-복수 커밋이면 각 단위별 파일 목록과 커밋 메시지를 계획한 후 순서대로 4~5단계를 반복합니다.
+If a single commit suffices, proceed to Step 4.
+If multiple commits are needed, plan the file list and commit message for each unit, then repeat Steps 4–5 for each.
 
-## 4단계: 커밋 메시지 작성
+## Step 4: Write commit message
 
-### 형식
+### Format
 
 ```
 <type>: <subject>
@@ -48,36 +48,36 @@ diff를 읽고 다음을 파악합니다:
 <body>
 ```
 
-`<body>`는 **자동 판단**합니다:
-- 변경 파일이 3개 미만이고 변경 내용이 단순하면 → 본문 없이 한 줄
-- 변경 파일이 3개 이상이거나 변경 내용이 복잡하면 → bullet 형식으로 본문 추가
+`<body>` is determined automatically:
+- Fewer than 3 changed files and simple changes → one-liner, no body
+- 3 or more changed files or complex changes → body in bullet format
 
-### type 선택 기준
+### Type selection
 
-| type | 사용 시점 |
-|------|----------|
-| `feat` | 새로운 기능 추가 |
-| `fix` | 버그 수정 |
-| `docs` | 문서만 변경 (코드 변경 없음) |
-| `style` | 포맷팅, 세미콜론 누락 등 (기능 변경 없음) |
-| `refactor` | 리팩토링 (기능 추가도 버그 수정도 아님) |
-| `test` | 테스트 추가 또는 수정 |
-| `chore` | 빌드, 의존성, 설정 파일 등 |
-| `perf` | 성능 개선 |
+| type | when to use |
+|------|-------------|
+| `feat` | new feature |
+| `fix` | bug fix |
+| `docs` | documentation only (no code change) |
+| `style` | formatting, missing semicolons, etc. (no functional change) |
+| `refactor` | refactoring (neither feature nor bug fix) |
+| `test` | adding or modifying tests |
+| `chore` | build, dependencies, config files, etc. |
+| `perf` | performance improvement |
 
-### 작성 규칙
+### Writing rules
 
-- subject: 50자 이내, 명령형, 마침표 없음, 한국어
-- body의 각 줄: 72자 이내
-- 좋은 예: `feat: 사용자 프로필 이미지 업로드 기능 추가`
-- 나쁜 예: `fix: 버그 수정` (모호), `feat: 로그인 기능 추가 및 버그 수정` (두 가지 혼재)
+- subject: under 50 chars, imperative mood, no period
+- body lines: under 72 chars each
+- Good: `feat: add user profile image upload`
+- Bad: `fix: fix bug` (vague), `feat: add login and fix bug` (two concerns mixed)
 
-## 5단계: staging + 커밋 실행
+## Step 5: Stage and commit
 
-해당 단위의 파일들을 staging하고 커밋합니다:
+Stage the files for this unit and commit:
 
 ```bash
-git add <파일1> <파일2> ...
+git add <file1> <file2> ...
 git commit -m "$(cat <<'EOF'
 <type>: <subject>
 
@@ -88,14 +88,14 @@ EOF
 )"
 ```
 
-복수 커밋이면 각 단위별로 이 단계를 반복합니다.
+Repeat this step for each unit if multiple commits are needed.
 
-## 6단계: 완료 보고
+## Step 6: Report completion
 
-생성된 커밋을 사용자에게 요약합니다:
+Summarize the created commits:
 
 ```bash
-git log --oneline -<커밋 수>
+git log --oneline -<commit count>
 ```
 
-커밋 해시와 메시지를 표 형식으로 출력합니다.
+Print commit hashes and messages in a table.

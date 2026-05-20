@@ -1,84 +1,84 @@
 ---
 name: git-code-review-apply
-description: GitHub PR의 인라인 리뷰 코멘트를 fetch하여 코드에 자동으로 반영하고 각 코멘트에 reply를 작성합니다. "/git-code-review-apply 1", "리뷰 반영해줘", "코드 리뷰 반영" 등의 요청에 사용하세요. PR 번호를 인자로 받습니다.
+description: Fetches inline review comments from a GitHub PR, applies them to the code, and posts a reply to each comment. Use for requests like "/git-code-review-apply 1", "apply review", "reflect code review". Accepts a PR number as argument.
 context: fork
 ---
 
-## 0단계: 인자 확인
+## Step 0: Validate argument
 
-스킬 호출 시 PR 번호가 인자로 제공되어야 합니다.
+A PR number must be provided when invoking this skill.
 
-PR 번호가 없으면 즉시 중단하고 안내합니다:
+If no PR number is given, stop immediately:
 
-> "PR 번호를 인자로 제공해주세요. 예: `/git-code-review-apply 1`"
+> "Please provide a PR number as an argument. Example: `/git-code-review-apply 1`"
 
-## 1단계: PR 코멘트 fetch
+## Step 1: Fetch PR comments
 
 ```bash
-# repo 정보 추출
+# Extract repo info
 REPO=$(gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"')
 
-# [A] 인라인 코멘트 전체 조회 (원본 코멘트만, reply 제외)
-# in_reply_to_id가 null인 것만 원본 코멘트
-gh api repos/$REPO/pulls/<PR번호>/comments \
+# [A] Fetch all inline comments (original comments only, excluding replies)
+# Only comments where in_reply_to_id is null are originals
+gh api repos/$REPO/pulls/<PR_NUMBER>/comments \
   --jq '[.[] | select(.in_reply_to_id == null)] | .[] | {id: .id, path: .path, line: .original_line, body: .body}'
 
-# 각 원본 인라인 코멘트에 reply가 달렸는지 확인 (이미 처리됐는지 판단)
-gh api repos/$REPO/pulls/<PR번호>/comments \
+# Check which original inline comments already have replies (to detect already-processed ones)
+gh api repos/$REPO/pulls/<PR_NUMBER>/comments \
   --jq '[.[] | select(.in_reply_to_id != null) | .in_reply_to_id] | unique'
 
-# [B] PR 일반 코멘트 전체 조회 (인라인이 아닌 PR 레벨 코멘트)
-# position을 특정할 수 없어 인라인으로 달리지 않은 리뷰 항목이 여기에 포함될 수 있음
-gh api repos/$REPO/issues/<PR번호>/comments \
+# [B] Fetch all general PR comments (non-inline, PR-level comments)
+# Review items that could not be placed inline may appear here
+gh api repos/$REPO/issues/<PR_NUMBER>/comments \
   --jq '.[] | {id: .id, body: .body, created_at: .created_at, user: .user.login}'
 ```
 
-**중요**: 인라인 코멘트([A])와 일반 코멘트([B]) 모두 반영 대상입니다. 일반 코멘트에는 position 계산이 불확실해 인라인으로 달지 못한 리뷰 항목이 포함되어 있을 수 있으므로 반드시 확인해야 합니다.
+**Important**: Both inline comments ([A]) and general comments ([B]) are candidates for applying. General comments may contain review items that could not be placed inline due to uncertain position — always check them.
 
-## 2단계: 코멘트 분석 및 반영 대상 선별
+## Step 2: Analyze comments and select items to apply
 
-fetch한 코멘트를 분석합니다:
+Analyze the fetched comments:
 
-- **인라인 코멘트**: reply가 달린 원본 코멘트는 이미 처리된 것으로 간주하고 **제외** (중복 반영 방지)
-- **일반 코멘트**: 리뷰어가 작성한 코멘트 중 코드 수정이 필요한 지적사항을 추출. 이미 반영 완료 코멘트(예: "반영했습니다"가 포함된 것)는 **제외**
-- 남은 코멘트를 파일별로 그룹화
-- 각 코멘트의 지적사항이 무엇인지 파악 (버그 수정, 개선 제안, 스타일 등)
+- **Inline comments**: Treat originals that already have a reply as already processed — **exclude** them (prevent duplicate application)
+- **General comments**: Extract actionable code change requests from reviewer comments. Exclude comments that indicate completion (e.g., those containing "already applied") — **exclude** them
+- Group remaining comments by file
+- Understand what each comment is requesting (bug fix, improvement suggestion, style, etc.)
 
-반영 불가 판단 기준:
-- 이미 수정된 상태인 경우 (현재 파일을 읽어 확인)
-- 단순 칭찬/확인 코멘트인 경우
+Criteria for marking as non-applicable:
+- Already fixed (verify by reading the current file)
+- Pure praise or acknowledgement comment
 
-## 3단계: 코드 수정 실행
+## Step 3: Apply code changes
 
-반영 대상 코멘트별로 해당 파일을 수정합니다.
+Modify the relevant files for each applicable comment.
 
-수정 원칙:
-- 코멘트에서 제안한 내용을 그대로 적용
-- 제안 코드 예시가 있으면 우선 참고
-- 수정 범위는 해당 지적사항에 한정 (주변 코드를 불필요하게 변경하지 않음)
+Principles:
+- Apply exactly what the comment suggests
+- Prefer the suggested code example if provided
+- Limit the change scope to the specific issue raised (do not modify surrounding code unnecessarily)
 
-모든 수정 완료 후 검증:
+After all changes, verify:
 ```bash
 npx tsc --noEmit && npm run lint && npm test && npm run build
 ```
 
-오류가 발생하면 해당 수정을 재검토 후 재시도합니다.
+If errors occur, re-examine the relevant change and retry.
 
-검증 통과 후 자동으로 커밋하고 push합니다:
+After verification passes, commit and push automatically:
 
 ```bash
-git add <수정된 파일들>
-git commit -m "fix: 코드 리뷰 반영 — <반영한 항목 한 줄 요약>
+git add <modified files>
+git commit -m "fix: apply code review — <one-line summary of applied changes>
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 git push
 ```
 
-**push 완료 후 4단계를 진행합니다.**
+**Proceed to Step 4 after push completes.**
 
-## 4단계: GitHub reply 작성
+## Step 4: Post GitHub replies
 
-커밋 해시를 먼저 확인합니다:
+Get the commit hash first:
 
 ```bash
 COMMIT_SHA=$(git rev-parse HEAD)
@@ -87,37 +87,37 @@ REPO=$(gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"')
 REPO_URL="https://github.com/$REPO"
 ```
 
-**인라인 코멘트** — 반영 여부에 관계없이 모든 원본 코멘트에 reply를 작성합니다:
+**Inline comments** — post a reply to every original comment regardless of whether it was applied:
 
 ```bash
-# 반영한 경우 — 커밋 링크 포함
-gh api repos/$REPO/pulls/<PR번호>/comments/<코멘트id>/replies \
+# Applied — include commit link
+gh api repos/$REPO/pulls/<PR_NUMBER>/comments/<comment_id>/replies \
   -X POST \
-  -f body="반영했습니다. <구체적으로 무엇을 바꿨는지 한 줄> ($REPO_URL/commit/$COMMIT_SHA)"
+  -f body="Applied. <one-line description of what changed> ($REPO_URL/commit/$COMMIT_SHA)"
 
-# 반영하지 않은 경우 (이미 처리됨, 반영 불가 등)
-gh api repos/$REPO/pulls/<PR번호>/comments/<코멘트id>/replies \
+# Not applied (already handled, non-applicable, etc.)
+gh api repos/$REPO/pulls/<PR_NUMBER>/comments/<comment_id>/replies \
   -X POST \
-  -f body="<반영하지 않은 이유 한 줄>"
+  -f body="<one-line reason for not applying>"
 ```
 
-**일반 코멘트** — 반영한 항목이 있으면 해당 코멘트에 답글을 작성합니다:
+**General comments** — if any items from general comments were applied, post a reply:
 
 ```bash
-gh api repos/$REPO/issues/<PR번호>/comments \
+gh api repos/$REPO/issues/<PR_NUMBER>/comments \
   -X POST \
-  -f body="## 반영 완료 ($REPO_URL/commit/$COMMIT_SHA)\n\n<반영한 항목 목록>\n\n<반영하지 않은 항목이 있으면 이유와 함께 명시>"
+  -f body="## Applied ($REPO_URL/commit/$COMMIT_SHA)\n\n<list of applied items>\n\n<if any items were not applied, list them with reasons>"
 ```
 
-## 5단계: 완료 보고
+## Step 5: Report completion
 
-모든 처리가 끝나면 사용자에게 요약 출력합니다:
+Print a summary to the user when all processing is done:
 
 ```
-✅ 코드 리뷰 반영 완료
-- 반영한 코멘트: N개
-- 건너뛴 코멘트: N개 (이유: 이미 처리됨 / 반영 불가)
-- 수정된 파일: [파일 목록]
-- tsc/lint/test/build: ✅ 통과
-- 커밋: <커밋 링크>
+✅ Code review applied
+- Comments applied: N
+- Comments skipped: N (reason: already processed / not applicable)
+- Modified files: [file list]
+- tsc/lint/test/build: ✅ passed
+- Commit: <commit link>
 ```

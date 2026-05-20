@@ -1,82 +1,82 @@
 ---
 name: git-code-review-pr
-description: 코드 리뷰 결과를 GitHub PR 인라인 코멘트로 작성합니다. "/git-code-review-pr 1", "PR에 리뷰 올려줘" 등의 요청에 사용하세요. PR 번호를 인자로 받아 diff position을 계산한 후 gh api로 인라인 코멘트를 작성합니다.
+description: Posts code review results as inline comments on a GitHub PR. Use for requests like "/git-code-review-pr 1", "post review on PR". Accepts a PR number as argument, calculates diff positions, and posts inline comments via gh api.
 context: fork
 ---
 
-## 0단계: 인자 확인
+## Step 0: Validate argument
 
-스킬 호출 시 PR 번호가 인자로 제공되어야 합니다.
+A PR number must be provided when invoking this skill.
 
-PR 번호가 없으면 즉시 중단하고 안내합니다:
+If no PR number is given, stop immediately:
 
-> "PR 번호를 인자로 제공해주세요. 예: `/git-code-review-pr 1`"
+> "Please provide a PR number as an argument. Example: `/git-code-review-pr 1`"
 
-## 1단계: PR 정보 및 변경 파일 확인
+## Step 1: Fetch PR info and changed files
 
 ```bash
-# repo 정보 추출
+# Extract repo info
 gh repo view --json owner,name --jq '"\(.owner.login)/\(.name)"'
 
-# PR 기본 정보
-gh pr view <PR번호> --json number,title,headRefName,headRefOid
+# PR basic info
+gh pr view <PR_NUMBER> --json number,title,headRefName,headRefOid
 
-# PR 변경 파일 목록과 patch
-gh api repos/{owner}/{repo}/pulls/<PR번호>/files \
+# Changed files with patch
+gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/files \
   --jq '.[] | {filename: .filename, patch: .patch}'
 ```
 
-## 2단계: 현재 코드 분석
+## Step 2: Analyze current code
 
-변경된 파일들을 읽고 `code-reviewer` 서브에이전트를 호출하여 리뷰를 생성합니다.
+Read the changed files and invoke a `code-reviewer` subagent to generate the review.
 
-서브에이전트에게 전달할 컨텍스트:
-- PR 변경 파일 목록과 patch 전체
-- 프로젝트 스택: Next.js 15 App Router, TypeScript, TailwindCSS v4, shadcn/ui, Supabase
+Context to pass to the subagent:
+- Full list of changed files and their patches
+- Project stack: Python 3.11+, PyGithub, Anthropic SDK, python-dotenv
 
-## 3단계: diff position 계산
+## Step 3: Calculate diff positions
 
-각 지적사항을 인라인 코멘트로 달기 위해 파일별 `position` 값을 계산합니다.
+Calculate the `position` value per file to place each review item as an inline comment.
 
-patch hunk 파싱 규칙:
-- `@@` 헤더 줄은 position 카운트에서 제외
-- patch의 첫 번째 줄(헤더 다음)이 position 1
-- `+`, `-`, ` `(컨텍스트) 줄 모두 position을 1씩 증가
-- 삭제된(`-`) 줄에는 코멘트를 달 수 없으므로 인접한 컨텍스트 줄이나 추가(`+`) 줄에 달기
+Patch hunk parsing rules:
+- `@@` header lines are excluded from the position count
+- The first line after the header is position 1
+- Each `+`, `-`, and ` ` (context) line increments position by 1
+- Comments cannot be placed on deleted (`-`) lines — use the adjacent context or added (`+`) line instead
 
-## 4단계: 인라인 코멘트 작성
+## Step 4: Post inline comments
 
-각 지적사항에 대해 gh api로 코멘트를 작성합니다:
+Post a comment for each review item via gh api:
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/<PR번호>/comments \
+gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/comments \
   -X POST \
-  -f body="<심각도이모지> **<제목>**\n\n<문제 설명>\n\n<코드 예시(있는 경우)>" \
-  -f path="<파일경로>" \
-  -F position=<계산된position> \
+  -f body="<severity_emoji> **<title>**\n\n<problem description>\n\n<code example if applicable>" \
+  -f path="<file path>" \
+  -F position=<calculated_position> \
   -f commit_id="<headRefOid>"
 ```
 
-심각도별 이모지:
-- 🔴 심각도 높음 (즉시 수정 필요)
-- 🟡 심각도 중간 (개선 권장)
-- 🟢 심각도 낮음 (선택적 개선)
+Severity emojis:
+- 🔴 High severity (fix required)
+- 🟡 Medium severity (improvement recommended)
+- 🟢 Low severity (optional improvement)
 
-position 계산이 불확실한 경우 해당 항목은 건너뛰고 마지막에 PR 일반 코멘트로 보완합니다:
+If position calculation is uncertain for an item, skip it and post it as a general PR comment at the end:
 
 ```bash
-gh pr comment <PR번호> --body "<건너뛴 지적사항 목록>"
+gh pr comment <PR_NUMBER> --body "<list of skipped review items>"
 ```
 
-## 5단계: 완료 보고
+## Step 5: Report completion
 
-작성 완료 후 사용자에게 요약 출력합니다:
+Print a summary to the user after all comments are posted:
 
 ```
-✅ 코드 리뷰 코멘트 작성 완료
-- 인라인 코멘트: N개
-- 일반 코멘트: N개
+✅ Code review comments posted
+- Inline comments: N
+- General comments: N
 - PR: <PR URL>
 
-리뷰 코멘트를 코드에 반영하려면 `/git-code-review-apply <PR번호>`를 사용하세요.
+To apply these review comments to the code, run `/git-code-review-apply <PR_NUMBER>`.
 ```
