@@ -140,22 +140,24 @@ GitHub API
 ## Deliverables Checklist
 
 - [x] GitAI installed and Claude Code hooks active
-- [ ] GitHub data collector implemented
-- [ ] LLM-based RCA classifier implemented
-- [ ] Trend aggregator and report generator implemented
-- [ ] Scalability design document (this file)
+- [x] GitHub data collector implemented
+- [x] LLM-based RCA classifier implemented
+- [x] Trend aggregator and report generator implemented
+- [x] Scalability design document (this file)
 - [ ] End-to-end run against OpenClaw closed PRs
 - [ ] `README.md` with setup and usage instructions
 
 ---
 
-## Repository Structure (planned)
+## Repository Structure
 
 ```
 openclaw-rca-engine/
 ├── CASE_STUDY.md          # Original challenge brief
+├── CLAUDE.md              # Project guidance for Claude Code
 ├── ROADMAP.md             # This file
 ├── README.md              # Setup and usage guide
+├── .env.example           # Required environment variable template
 ├── src/
 │   ├── github_client.py   # GitHub API data collection
 │   ├── preprocessor.py    # Data cleaning and truncation
@@ -164,7 +166,6 @@ openclaw-rca-engine/
 │   └── main.py            # CLI entry point
 ├── prompts/
 │   └── rca_system.md      # System prompt for the classifier
-├── output/
-│   └── report.md          # Generated trend report (gitignored sample)
+├── output/                # Generated reports (gitignored)
 └── requirements.txt
 ```
