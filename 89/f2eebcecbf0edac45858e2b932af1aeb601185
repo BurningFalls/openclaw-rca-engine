@@ -1,0 +1,27 @@
+prompts/rca_system.md
+  s_4fa53a3c508b34::t_e3152a3bc523cd 71
+src/classifier.py
+  s_4fa53a3c508b34::t_5753a341623a57 11
+  s_4fa53a3c508b34::t_9f15b35e38b51c 4
+  s_4fa53a3c508b34::t_ca2f9e8f74840e 235
+  s_4fa53a3c508b34::t_950e81b0b6fe14 120-123
+  s_4fa53a3c508b34::t_07454e7739d9d8 169-170
+  s_4fa53a3c508b34::t_d0ad40a6f5799d 23-24
+  s_4fa53a3c508b34::t_4acbafa4c17806 25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "89f2eebcecbf0edac45858e2b932af1aeb601185",
+  "prompts": {},
+  "sessions": {
+    "s_4fa53a3c508b34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4442842-5409-4a7c-a1dc-f492feccde32",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
