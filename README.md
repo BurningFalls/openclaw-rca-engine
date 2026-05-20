@@ -140,6 +140,12 @@ Full report with per-PR reasoning and evidence: [`output/report.md`](output/repo
 
 ---
 
+## Production design
+
+See [`production_design.md`](production_design.md) for notes on how this pipeline could be deployed and scaled in a production environment — scheduling via GitHub Actions, Docker-based runtime, and token cost optimizations (rule-based pre-classification, model tiering, incremental processing).
+
+---
+
 ## Project structure
 
 ```
