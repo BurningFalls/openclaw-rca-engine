@@ -68,7 +68,7 @@ Respond with a JSON object following this exact schema:
 
 Rules:
 - `category` must be exactly one of the six values above (uppercase, no variations)
-- `confidence` reflects how certain you are: 0.9+ means strong evidence, 0.5-0.7 means plausible but ambiguous
+- `confidence` reflects how certain you are: `0.9–1.0` strong, unambiguous evidence; `0.7–0.9` moderately confident; `0.5–0.7` plausible but ambiguous; `< 0.5` weak signal, prefer UNKNOWN
 - `reasoning` must reference concrete details from the PR (e.g., specific comments, check run names, labels)
 - `evidence` is a list of 1-5 short strings quoting or paraphrasing the key signals you found
 - Output only the JSON object — no markdown fences, no extra text

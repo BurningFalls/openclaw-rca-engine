@@ -1,17 +1,17 @@
 """
 LLM-based root cause analysis classifier for abandoned pull requests.
 
-Uses the Claude API with prompt caching to classify each PR into one of five
+Uses the Claude API with prompt caching to classify each PR into one of six
 failure categories: STALE, MERGE_CONFLICT, CI_FAILURE, ARCHITECTURAL_MISMATCH,
 SUPERSEDED, or UNKNOWN.
 """
 
 import json
 import os
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import anthropic
 from dotenv import load_dotenv
@@ -20,7 +20,9 @@ from github_client import PRData, ReviewData, CheckRunResult
 
 load_dotenv()
 
-MODEL = "claude-haiku-4-5-20251001"
+__all__ = ["ClassificationResult", "classify_pr", "classify_prs"]
+
+MODEL = "claude-haiku-4-5"
 MAX_TOKENS = 512
 
 VALID_CATEGORIES = frozenset(
@@ -115,10 +117,10 @@ def _build_user_message(pr: PRData) -> str:
 def _parse_response(raw: str) -> dict:
     """Extract and validate the JSON payload from the model response."""
     text = raw.strip()
-    # Strip markdown fences if the model added them despite instructions
-    if text.startswith("```"):
-        lines = text.splitlines()
-        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
+    # Strip optional markdown fences (with or without language tag, handles trailing whitespace)
+    text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
+    text = re.sub(r"\n?```\s*$", "", text)
+    text = text.strip()
 
     parsed = json.loads(text)
 
@@ -164,6 +166,8 @@ def classify_pr(
         messages=[{"role": "user", "content": user_message}],
     )
 
+    if not response.content:
+        raise ValueError("Empty response content from API")
     raw_text = response.content[0].text
     usage = response.usage
 
@@ -228,7 +232,7 @@ def classify_prs(
                 f"tokens: in={result.input_tokens} out={result.output_tokens} "
                 f"cache_hit={result.cache_read_tokens} cache_create={result.cache_creation_tokens}"
             )
-        except (anthropic.APIError, anthropic.APIConnectionError) as e:
+        except anthropic.APIError as e:
             print(f"    [error] API error for PR #{pr.number}: {e}")
             results.append(
                 ClassificationResult(
