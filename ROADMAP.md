@@ -140,16 +140,16 @@ GitHub API
 ## Deliverables Checklist
 
 - [x] GitAI installed and Claude Code hooks active
-- [ ] GitHub data collector implemented
-- [ ] LLM-based RCA classifier implemented
-- [ ] Trend aggregator and report generator implemented
-- [ ] Scalability design document (this file)
+- [x] GitHub data collector implemented
+- [x] LLM-based RCA classifier implemented
+- [x] Trend aggregator and report generator implemented
+- [x] Scalability design document (this file)
 - [ ] End-to-end run against OpenClaw closed PRs
 - [ ] `README.md` with setup and usage instructions
 
 ---
 
-## Repository Structure (planned)
+## Repository Structure
 
 ```
 openclaw-rca-engine/
