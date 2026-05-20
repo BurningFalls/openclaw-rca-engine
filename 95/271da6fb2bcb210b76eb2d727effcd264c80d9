@@ -1,0 +1,19 @@
+README.md
+  s_51737294fbd534::t_9520e02f639cd2 3-48,55-56,71,78,81,85-97,99-104,107,109,111-114,116,119-120,122-123,126,128,130-135,137,139,149,154-161,164-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "95271da6fb2bcb210b76eb2d727effcd264c80d9",
+  "prompts": {},
+  "sessions": {
+    "s_51737294fbd534": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a7a30a95-af9f-4201-b119-344c781fd96b",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
