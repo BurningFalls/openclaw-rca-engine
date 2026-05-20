@@ -16,7 +16,7 @@ from pathlib import Path
 import anthropic
 from dotenv import load_dotenv
 
-from preprocessor import PreprocessedPR, preprocess_prs
+from preprocessor import PreprocessedPR
 
 load_dotenv()
 
@@ -237,6 +237,7 @@ def _print_token_summary(results: list[ClassificationResult]) -> None:
 
 if __name__ == "__main__":
     from github_client import collect_closed_prs
+    from preprocessor import preprocess_prs
 
     raw_prs = collect_closed_prs(limit=3)
     prs = preprocess_prs(raw_prs)

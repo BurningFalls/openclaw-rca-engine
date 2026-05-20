@@ -85,7 +85,7 @@ def preprocess_pr(pr: PRData) -> PreprocessedPR:
         author=pr.author,
         created_at=pr.created_at,
         closed_at=pr.closed_at,
-        labels=pr.labels,
+        labels=list(pr.labels),
         body_truncated=pr.body[:_MAX_BODY_CHARS].strip() if pr.body else "No description provided.",
         check_runs_formatted=_format_check_runs(pr.check_runs),
         reviews_formatted=_format_reviews(pr.reviews),
@@ -104,5 +104,5 @@ def preprocess_prs(prs: list[PRData]) -> list[PreprocessedPR]:
     """Preprocess a list of PRData objects in order."""
     print(f"[preprocessor] Preprocessing {len(prs)} PRs...")
     preprocessed = [preprocess_pr(pr) for pr in prs]
-    print(f"[preprocessor] Done.")
+    print("[preprocessor] Done.")
     return preprocessed
