@@ -1,0 +1,23 @@
+.gitignore
+  s_4fa53a3c508b34::t_28f66f539cec29 7
+src/classifier.py
+  s_4fa53a3c508b34::t_55bb1e22fcd0d2 1-280
+prompts/rca_system.md
+  s_4fa53a3c508b34::t_7f5216471fbdf2 1-74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "74a5756a34ad469e22fc9a1f0d2cdf478b069eea",
+  "prompts": {},
+  "sessions": {
+    "s_4fa53a3c508b34": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f4442842-5409-4a7c-a1dc-f492feccde32",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "BurningFalls <sherlocky31415@gmail.com>"
+    }
+  }
+}
